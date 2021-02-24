@@ -50,16 +50,18 @@ jobs:
         with:
           push: true
           builder: ${{ steps.buildx.outputs.name }}
-          context: .
+          context: ./mlflow/${{ matrix.BASE_IMAGE }}
           file: ./mlflow/${{ matrix.BASE_IMAGE }}/Dockerfile
           platforms: linux/amd64
           build-args: |
             PYTHON_VERSION=${{ env.PYTHON_VERSION }}
             TINI_VERSION=${{ env.TINI_VERSION }}
             CONDA_VERSION=${{ env.CONDA_VERSION }}
+          cache-from: type=registry,ref=ghcr.io/${{ GITHUB_REPOSITORY }}:${{ matrix.MLFLOW_VERSION }}-${{ matrix.BASE_IMAGE }}
+          cache-to: type=inline
           tags: |
             ghcr.io/${{ GITHUB_REPOSITORY }}:${{ matrix.MLFLOW_VERSION }}-${{ matrix.BASE_IMAGE }}
-            ghcr.io/${{ GITHUB_REPOSITORY }}:${{ matrix.MLFLOW_VERSION }}-${{ matrix.BASE_IMAGE }}-${{ steps.prep.outputs.VERSION }}
+            ghcr.io/${{ GITHUB_REPOSITORY }}:${{ matrix.MLFLOW_VERSION }}-${{ matrix.BASE_IMAGE }}-${{ GITHUB_RUN_NUMBER }}
           labels: |
             org.opencontainers.image.title=${{ github.event.repository.name }}
             org.opencontainers.image.description=${{ github.event.repository.description }}
