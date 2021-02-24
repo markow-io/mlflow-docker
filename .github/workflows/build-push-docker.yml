@@ -7,7 +7,7 @@ on:
       - main
 
 env:
-  REPOSITORY: "$GITHUB_REPOSITORY"
+  REPOSITORY: $GITHUB_REPOSITORY
 
 jobs:
   build-push:
