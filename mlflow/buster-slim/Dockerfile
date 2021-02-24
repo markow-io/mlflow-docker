@@ -14,7 +14,7 @@ RUN useradd --uid "${MLFLOW_UID}" \
             --create-home "${MLFLOW_USER}"
 
 RUN apt-get update \
- && apt-get install --yes --no-install-recommends \
+ && apt-get install --upgrade --yes --no-install-recommends \
     ca-certificates \
     curl \
     git \
