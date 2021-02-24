@@ -60,7 +60,7 @@ jobs:
           cache-to: type=inline
           tags: |
             ghcr.io/${{ github.REPOSITORY }}:${{ matrix.MLFLOW_VERSION }}-${{ matrix.BASE_IMAGE }}
-            ghcr.io/${{ github.REPOSITORY }}:${{ matrix.MLFLOW_VERSION }}-${{ matrix.BASE_IMAGE }}-${GITHUB_RUN_NUMBER}
+            ghcr.io/${{ github.REPOSITORY }}:${{ matrix.MLFLOW_VERSION }}-${{ matrix.BASE_IMAGE }}-${{ github.run_number }}
           labels: |
             org.opencontainers.image.title=${{ github.event.repository.name }}
             org.opencontainers.image.description=${{ github.event.repository.description }}
