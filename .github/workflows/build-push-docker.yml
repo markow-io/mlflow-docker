@@ -1,0 +1,69 @@
+---
+name: build-push-docker
+
+on:
+  push:
+    branches:
+      - main
+
+
+jobs:
+  build-push:
+    runs-on: ubuntu-latest
+    env:
+      PYTHON_VERSION: 3.8.8
+      TINI_VERSION: 0.19.0
+      CONDA_VERSION: py38_4.9.2
+    strategy:
+      fail-fast: false
+      matrix:
+        BASE_IMAGE:
+          - buster-slim
+        MLFLOW_VERSION:
+          - 1.14.0
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Version
+        id: version
+        run: |
+          VERSION=sha-${GITHUB_SHA::8}
+          echo ::set-output name=BUILD_DATE::$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+          echo ::set-output name=VERSION::${VERSION}
+      - name: Setup QEMU
+        uses: docker/setup-qemu-action@v1
+        with:
+          platform: all
+      - name: Setup Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v1
+        with:
+          buildkitd-flags: "--debug"
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: markow-io
+          password: ${{ secrets.GHCR_TOKEN }}
+      - name: Publish container images
+        uses: docker/build-push-action@v2
+        with:
+          push: true
+          builder: ${{ steps.buildx.outputs.name }}
+          context: .
+          file: ./mlflow/${{ matrix.BASE_IMAGE }}/Dockerfile
+          platforms: linux/amd64
+          build-args: |
+            PYTHON_VERSION=${{ env.PYTHON_VERSION }}
+            TINI_VERSION=${{ env.TINI_VERSION }}
+            CONDA_VERSION=${{ env.CONDA_VERSION }}
+          tags: |
+            ghcr.io/${{ GITHUB_REPOSITORY }}:${{ matrix.MLFLOW_VERSION }}-${{ matrix.BASE_IMAGE }}
+            ghcr.io/${{ GITHUB_REPOSITORY }}:${{ matrix.MLFLOW_VERSION }}-${{ matrix.BASE_IMAGE }}-${{ steps.prep.outputs.VERSION }}
+          labels: |
+            org.opencontainers.image.title=${{ github.event.repository.name }}
+            org.opencontainers.image.description=${{ github.event.repository.description }}
+            org.opencontainers.image.url=${{ github.event.repository.html_url }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.version=${{ matrix.MLFLOW_VERSION }}-${{ steps.version.outputs.VERSION }}
+            org.opencontainers.image.created=${{ steps.version.outputs.BUILD_DATE }}
